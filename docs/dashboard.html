@@ -4,23 +4,57 @@
 <meta charset="UTF-8">
 <title>Dashboard — WatchEarn Pro</title>
 <style>
-body{background:#07070d;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
-.msg{text-align:center}
-h1{font-size:2rem;margin-bottom:12px}
-p{color:#7070a0}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#07070d;color:#fff;font-family:sans-serif;min-height:100vh}
+.loader{position:fixed;inset:0;background:#07070d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:9999}
+.loader-title{font-size:1.5rem;font-weight:800;color:#7c6eff}
+.spinner{width:36px;height:36px;border:3px solid #1c1c2e;border-top-color:#7c6eff;border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
-<div class="msg">
-<h1>🎉 Login Successful!</h1>
-<p>Dashboard coming soon...</p>
+<div class="loader" id="loader">
+  <div class="loader-title">WatchEarn Pro</div>
+  <div class="spinner"></div>
+  <p style="color:#7070a0;font-size:0.85rem">Loading dashboard...</p>
+</div>
+<div id="app" style="display:none;padding:40px;text-align:center">
+  <h1 style="font-size:2rem;margin-bottom:12px">Welcome!</h1>
+  <p id="user-info" style="color:#7070a0;margin-bottom:24px"></p>
+  <button id="btn-logout" style="padding:12px 28px;background:#7c6eff;color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer">Logout</button>
 </div>
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-const supabase = createClient('https://your-project.supabase.co','your-anon-key');
-const { data:{ session } } = await supabase.auth.getSession();
-if(!session){ window.location.href='/watchearn-pro/index.html'; }
-else{ document.querySelector('p').textContent = 'Welcome ' + (session.user.email || session.user.user_metadata?.preferred_username); }
+const SUPABASE_URL = 'https://srnygmsnrofumbvvqajg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNybnlnbXNucm9mdW1idnZxYWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NDkzNTIsImV4cCI6MjA5MzIyNTM1Mn0.UfFyLXs-twDZOMHEtYoOzbLqEDFXiIZrb10Xg68K0X8';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { detectSessionInUrl: true, persistSession: true, autoRefreshToken: true }
+});
+const loader = document.getElementById('loader');
+const app = document.getElementById('app');
+const info = document.getElementById('user-info');
+document.getElementById('btn-logout').addEventListener('click', async () => {
+  await supabase.auth.signOut();
+  window.location.href = '/watchearn-pro/index.html';
+});
+const init = async () => {
+  await new Promise(r => setTimeout(r, 1000));
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    await new Promise(r => setTimeout(r, 1000));
+    const retry = await supabase.auth.getSession();
+    if (!retry.data.session) {
+      window.location.href = '/watchearn-pro/index.html';
+      return;
+    }
+  }
+  const user = session.user;
+  loader.style.display = 'none';
+  app.style.display = 'block';
+  const name = user.user_metadata?.full_name || user.user_metadata?.preferred_username || user.email || 'Earner';
+  info.textContent = 'Logged in as: ' + name;
+};
+init();
 </script>
 </body>
 </html>
