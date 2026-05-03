@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WatchEarn Pro — Earn While You Watch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#07070d;
+  --surface:#0d0d17;
+  --card:#11111e;
+  --border:#1c1c2e;
+  --border2:#252538;
+  --primary:#7c6eff;
+  --primary2:#6055e0;
+  --pink:#ff5f84;
+  --gold:#f5c842;
+  --teal:#00c9a7;
+  --red:#ff4560;
+  --text:#ddddf0;
+  --muted:#7070a0;
+  --dim:#3a3a5c;
+  --gp:rgba(124,110,255,0.18);
+  --gk:rgba(255,95,132,0.15);
+  --gg:rgba(245,200,66,0.15);
+  --gt:rgba(0,201,167,0.15);
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--black);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  cursor:none;
+}
+
+/* ── Custom Cursor ── */
+#cursor{
+  position:fixed;width:12px;height:12px;
+  background:var(--primary);border-radius:50%;
+  pointer-events:none;z-index:99999;
+  transform:translate(-50%,-50%);
+  transition:transform 0.1s,width 0.2s,height 0.2s,background 0.2s;
+  mix-blend-mode:difference;
+}
+#cursor-ring{
+  position:fixed;width:36px;height:36px;
+  border:1.5px solid rgba(124,110,255,0.5);
+  border-radius:50%;pointer-events:none;z-index:99998;
+  transform:translate(-50%,-50%);
+  transition:transform 0.12s ease,width 0.2s,height 0.2s,opacity 0.2s;
+}
+
+/* ── Noise Overlay ── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:1;opacity:0.4;
+}
+
+/* ── Mesh Background ── */
+.mesh{
+  position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 80% 10%,rgba(124,110,255,0.12) 0%,transparent 70%),
+    radial-gradient(ellipse 40% 40% at 10% 80%,rgba(255,95,132,0.08) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 40% at 50% 50%,rgba(0,201,167,0.04) 0%,transparent 70%);
+  pointer-events:none;
+}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;height:64px;
+  display:flex;align-items:center;
+  padding:0 32px;z-index:1000;
+  background:rgba(7,7,13,0.7);
+  backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{
+  font-family:'Syne',sans-serif;
+  font-weight:800;font-size:1.25rem;
+  background:linear-gradient(135deg,var(--primary),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;letter-spacing:-0.02em;
+}
+.nav-pill{
+  margin-left:auto;
+  background:rgba(124,110,255,0.1);
+  border:1px solid rgba(124,110,255,0.3);
+  color:var(--primary);
+  padding:6px 16px;border-radius:100px;
+  font-size:0.8rem;font-weight:600;
+  letter-spacing:0.04em;
+}
+
+/* ── PAGE WRAPPER ── */
+.page{position:relative;z-index:2;padding-top:64px}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;display:flex;
+  flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;
+  padding:80px 24px 60px;
+  position:relative;
+}
+
+/* Floating badge */
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 20px;border-radius:100px;
+  background:rgba(245,200,66,0.08);
+  border:1px solid rgba(245,200,66,0.3);
+  color:var(--gold);font-size:0.8rem;font-weight:600;
+  letter-spacing:0.06em;text-transform:uppercase;
+  margin-bottom:40px;
+  animation:fadeDown 0.7s ease both;
+}
+.badge-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--gold);
+  animation:blink 1.5s ease-in-out infinite;
+}
+
+.hero-title{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(3rem,10vw,6.5rem);
+  font-weight:800;line-height:1.0;
+  letter-spacing:-0.04em;
+  margin-bottom:28px;
+  animation:fadeUp 0.7s ease 0.1s both;
+}
+.hero-title .line1{display:block;color:var(--text)}
+.hero-title .line2{
+  display:block;
+  background:linear-gradient(135deg,var(--primary) 0%,var(--pink) 50%,var(--gold) 100%);
+  background-size:200% 200%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:gradShift 4s ease infinite;
+}
+
+.hero-sub{
+  font-size:clamp(1rem,2.5vw,1.2rem);
+  color:var(--muted);max-width:520px;
+  line-height:1.8;margin-bottom:52px;
+  font-weight:300;
+  animation:fadeUp 0.7s ease 0.2s both;
+}
+
+/* ── AUTH BUTTONS ── */
+.auth-wrap{
+  display:flex;flex-direction:column;
+  gap:14px;width:100%;max-width:380px;
+  animation:fadeUp 0.7s ease 0.3s both;
+}
+
+.btn-oauth{
+  width:100%;padding:16px 24px;
+  border-radius:14px;border:none;
+  display:flex;align-items:center;justify-content:center;
+  gap:12px;font-family:'DM Sans',sans-serif;
+  font-size:1rem;font-weight:600;
+  cursor:none;transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  position:relative;overflow:hidden;
+}
+.btn-oauth::after{
+  content:'';position:absolute;inset:0;
+  background:rgba(255,255,255,0.08);
+  opacity:0;transition:opacity 0.2s;
+}
+.btn-oauth:hover::after{opacity:1}
+.btn-oauth:hover{transform:translateY(-3px)}
+.btn-oauth:active{transform:scale(0.97)}
+
+.btn-google{
+  background:#fff;color:#1a1a2e;
+  box-shadow:0 8px 32px rgba(255,255,255,0.1);
+}
+.btn-google:hover{box-shadow:0 12px 40px rgba(255,255,255,0.2)}
+
+.btn-github{
+  background:#161b22;color:#fff;
+  border:1px solid #30363d;
+  box-shadow:0 8px 32px rgba(0,0,0,0.3);
+}
+.btn-github:hover{background:#1c2128;box-shadow:0 12px 40px rgba(0,0,0,0.4)}
+
+.auth-sep{
+  display:flex;align-items:center;gap:16px;
+  color:var(--dim);font-size:0.85rem;
+}
+.auth-sep::before,.auth-sep::after{
+  content:'';flex:1;height:1px;
+  background:var(--border);
+}
+
+/* ── STATS ROW ── */
+.stats-row{
+  display:flex;gap:48px;margin-top:72px;
+  flex-wrap:wrap;justify-content:center;
+  animation:fadeUp 0.7s ease 0.4s both;
+}
+.stat-item{text-align:center}
+.stat-num{
+  font-family:'Syne',sans-serif;
+  font-size:2rem;font-weight:800;
+  color:var(--gold);display:block;
+  letter-spacing:-0.02em;
+}
+.stat-label{
+  font-size:0.75rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.08em;
+  font-weight:500;
+}
+
+/* Scroll indicator */
+.scroll-hint{
+  position:absolute;bottom:32px;left:50%;
+  transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  color:var(--dim);font-size:0.75rem;letter-spacing:0.1em;
+  text-transform:uppercase;
+  animation:fadeUp 1s ease 1s both;
+}
+.scroll-line{
+  width:1px;height:48px;
+  background:linear-gradient(to bottom,var(--primary),transparent);
+  animation:scrollPulse 2s ease-in-out infinite;
+}
+
+/* ── FEATURES ── */
+.section{
+  padding:100px 24px;
+  max-width:1200px;margin:0 auto;
+}
+.section-tag{
+  display:inline-block;
+  font-size:0.75rem;font-weight:600;
+  letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--primary);margin-bottom:20px;
+  font-family:'JetBrains Mono',monospace;
+}
+.section-title{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(2rem,5vw,3.5rem);
+  font-weight:800;letter-spacing:-0.03em;
+  margin-bottom:16px;line-height:1.1;
+}
+.section-sub{
+  color:var(--muted);font-size:1.05rem;
+  max-width:480px;line-height:1.7;
+  margin-bottom:64px;
+}
+
+/* Feature Grid */
+.feat-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+}
+.feat-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;padding:32px;
+  transition:all 0.3s ease;
+  position:relative;overflow:hidden;
+}
+.feat-card::before{
+  content:'';position:absolute;
+  inset:0;opacity:0;transition:opacity 0.3s;
+  background:radial-gradient(circle at 50% 0%,var(--gp),transparent 70%);
+}
+.feat-card:hover{
+  border-color:rgba(124,110,255,0.4);
+  transform:translateY(-6px);
+}
+.feat-card:hover::before{opacity:1}
+.feat-card:nth-child(2)::before{background:radial-gradient(circle at 50% 0%,var(--gk),transparent 70%)}
+.feat-card:nth-child(2):hover{border-color:rgba(255,95,132,0.4)}
+.feat-card:nth-child(3)::before{background:radial-gradient(circle at 50% 0%,var(--gg),transparent 70%)}
+.feat-card:nth-child(3):hover{border-color:rgba(245,200,66,0.4)}
+.feat-card:nth-child(4)::before{background:radial-gradient(circle at 50% 0%,var(--gt),transparent 70%)}
+.feat-card:nth-child(4):hover{border-color:rgba(0,201,167,0.4)}
+
+.feat-icon{
+  width:52px;height:52px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;margin-bottom:20px;
+}
+.feat-icon-p{background:var(--gp)}
+.feat-icon-k{background:var(--gk)}
+.feat-icon-g{background:var(--gg)}
+.feat-icon-t{background:var(--gt)}
+.feat-icon-r{background:rgba(255,69,96,0.15)}
+.feat-icon-b{background:rgba(124,110,255,0.15)}
+
+.feat-title{
+  font-family:'Syne',sans-serif;
+  font-size:1.1rem;font-weight:700;
+  margin-bottom:10px;letter-spacing:-0.01em;
+}
+.feat-desc{
+  font-size:0.875rem;color:var(--muted);
+  line-height:1.7;
+}
+
+/* ── HOW IT WORKS ── */
+.how-wrap{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:80px;align-items:center;
+}
+.steps-list{display:flex;flex-direction:column;gap:0}
+.step{
+  display:flex;gap:20px;
+  padding:28px 0;
+  border-bottom:1px solid var(--border);
+  position:relative;
+}
+.step:last-child{border-bottom:none}
+.step-num-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:0;
+  flex-shrink:0;
+}
+.step-num{
+  width:40px;height:40px;border-radius:12px;
+  background:linear-gradient(135deg,var(--primary),var(--pink));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;
+  font-size:0.9rem;color:white;flex-shrink:0;
+  box-shadow:0 4px 16px var(--gp);
+}
+.step h4{
+  font-family:'Syne',sans-serif;
+  font-size:1rem;font-weight:700;
+  margin-bottom:6px;letter-spacing:-0.01em;
+}
+.step p{font-size:0.875rem;color:var(--muted);line-height:1.6}
+
+/* Visual card */
+.how-visual{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:24px;padding:32px;
+  position:relative;overflow:hidden;
+}
+.how-visual::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 0%,var(--gp),transparent 60%);
+}
+.earning-preview{position:relative;z-index:1}
+.ep-header{
+  display:flex;align-items:center;
+  justify-content:space-between;margin-bottom:24px;
+}
+.ep-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem}
+.ep-live{
+  display:flex;align-items:center;gap:6px;
+  font-size:0.75rem;color:var(--teal);font-weight:600;
+}
+.ep-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--teal);animation:blink 1.5s infinite;
+}
+.ep-amount{
+  font-family:'Syne',sans-serif;font-size:3rem;
+  font-weight:800;color:var(--gold);
+  letter-spacing:-0.03em;margin-bottom:4px;
+}
+.ep-label{font-size:0.8rem;color:var(--muted);margin-bottom:24px}
+.ep-bar-wrap{
+  background:rgba(255,255,255,0.05);
+  border-radius:100px;height:6px;
+  margin-bottom:8px;overflow:hidden;
+}
+.ep-bar{
+  height:100%;border-radius:100px;width:68%;
+  background:linear-gradient(90deg,var(--primary),var(--pink));
+  position:relative;
+}
+.ep-bar::after{
+  content:'';position:absolute;right:0;top:0;bottom:0;
+  width:30px;background:rgba(255,255,255,0.3);
+  animation:shimmer 1.5s infinite;
+}
+.ep-tasks{
+  display:flex;flex-direction:column;gap:10px;
+  margin-top:20px;
+}
+.ep-task{
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);
+  border-radius:12px;padding:12px 16px;
+}
+.ep-task-left{display:flex;align-items:center;gap:10px}
+.ep-task-icon{
+  width:32px;height:32px;border-radius:8px;
+  background:var(--gp);display:flex;
+  align-items:center;justify-content:center;font-size:0.9rem;
+}
+.ep-task-name{font-size:0.8rem;font-weight:600}
+.ep-task-time{font-size:0.7rem;color:var(--muted)}
+.ep-task-earn{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.85rem;font-weight:600;color:var(--teal);
+}
+
+/* ── WITHDRAW SECTION ── */
+.withdraw-sec{
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  padding:100px 24px;
+}
+.withdraw-inner{
+  max-width:1200px;margin:0 auto;
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:80px;align-items:center;
+}
+.methods-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+}
+.method-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:24px 20px;
+  display:flex;flex-direction:column;align-items:center;
+  gap:12px;text-align:center;
+  transition:all 0.25s ease;
+}
+.method-card:hover{
+  border-color:rgba(124,110,255,0.4);
+  transform:translateY(-4px);
+  box-shadow:0 8px 32px var(--gp);
+}
+.method-icon{font-size:2rem}
+.method-name{font-weight:700;font-size:0.9rem}
+.method-time{font-size:0.75rem;color:var(--muted)}
+.method-badge{
+  font-size:0.65rem;font-weight:700;
+  padding:3px 10px;border-radius:100px;
+  background:var(--gt);color:var(--teal);
+  letter-spacing:0.06em;text-transform:uppercase;
+}
+
+/* ── FINAL CTA ── */
+.cta-section{
+  padding:120px 24px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.cta-section::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(124,110,255,0.08),transparent 70%);
+  pointer-events:none;
+}
+.cta-title{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(2.5rem,6vw,4.5rem);
+  font-weight:800;letter-spacing:-0.03em;
+  margin-bottom:20px;
+}
+.cta-sub{
+  color:var(--muted);font-size:1.1rem;
+  max-width:480px;margin:0 auto 48px;line-height:1.7;
+}
+.cta-btns{
+  display:flex;gap:16px;justify-content:center;flex-wrap:wrap;
+}
+.btn-cta-primary{
+  padding:16px 36px;border-radius:14px;border:none;
+  background:linear-gradient(135deg,var(--primary),var(--primary2));
+  color:white;font-family:'DM Sans',sans-serif;
+  font-size:1rem;font-weight:600;cursor:none;
+  box-shadow:0 8px 32px var(--gp);
+  transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+.btn-cta-primary:hover{transform:translateY(-3px);box-shadow:0 12px 48px var(--gp)}
+.btn-cta-outline{
+  padding:16px 36px;border-radius:14px;
+  border:1px solid var(--border2);
+  background:transparent;color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:1rem;
+  font-weight:600;cursor:none;
+  transition:all 0.25s ease;
+}
+.btn-cta-outline:hover{border-color:var(--primary);color:var(--primary)}
+
+/* ── FOOTER ── */
+footer{
+  padding:40px 24px;
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;gap:16px;
+  max-width:1200px;margin:0 auto;
+}
+.footer-logo{
+  font-family:'Syne',sans-serif;font-weight:800;
+  background:linear-gradient(135deg,var(--primary),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.footer-text{font-size:0.8rem;color:var(--dim)}
+
+/* ── PAGE LOADER ── */
+#loader{
+  position:fixed;inset:0;z-index:99999;
+  background:var(--black);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:20px;
+  transition:opacity 0.5s ease;
+}
+#loader.hide{opacity:0;pointer-events:none}
+.loader-logo{
+  font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;
+  background:linear-gradient(135deg,var(--primary),var(--pink),var(--gold));
+  background-size:200%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:gradShift 2s ease infinite;
+}
+.loader-bar{
+  width:200px;height:2px;
+  background:var(--border);border-radius:100px;overflow:hidden;
+}
+.loader-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--primary),var(--pink));
+  border-radius:100px;
+  animation:loadFill 1.2s ease forwards;
+}
+
+/* ── KEYFRAMES ── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(24px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes fadeDown{
+  from{opacity:0;transform:translateY(-16px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes gradShift{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+@keyframes blink{
+  0%,100%{opacity:1}50%{opacity:0.3}
+}
+@keyframes scrollPulse{
+  0%,100%{opacity:0.4;transform:scaleY(1)}
+  50%{opacity:1;transform:scaleY(1.2)}
+}
+@keyframes shimmer{
+  0%{transform:translateX(-100%)}
+  100%{transform:translateX(300%)}
+}
+@keyframes loadFill{
+  0%{width:0%}
+  60%{width:80%}
+  100%{width:100%}
+}
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-12px)}
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .feat-grid{grid-template-columns:1fr 1fr}
+  .how-wrap,.withdraw-inner{grid-template-columns:1fr;gap:48px}
+  .how-visual{display:none}
+}
+@media(max-width:600px){
+  .feat-grid{grid-template-columns:1fr}
+  .stats-row{gap:28px}
+  .methods-grid{grid-template-columns:1fr 1fr}
+  nav{padding:0 20px}
+  body{cursor:auto}
+  #cursor,#cursor-ring{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- Mesh BG -->
+<div class="mesh"></div>
+
+<!-- Loader -->
+<div id="loader">
+  <div class="loader-logo">WatchEarn Pro</div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">WatchEarn Pro</div>
+  <div class="nav-pill">🇵🇰 Pakistan #1</div>
+</nav>
+
+<!-- PAGE -->
+<div class="page">
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="badge-dot"></span>
+    Live — 10,000+ Earners Online
+  </div>
+
+  <h1 class="hero-title">
+    <span class="line1">Watch Videos.</span>
+    <span class="line2">Earn Real Money.</span>
+  </h1>
+
+  <p class="hero-sub">
+    Complete simple video tasks and get paid directly to your
+    EasyPaisa, JazzCash, or Bank account. No skills needed.
+  </p>
+
+  <div class="auth-wrap">
+    <button class="btn-oauth btn-google" id="btn-google">
+      <svg width="20" height="20" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Continue with Google
+    </button>
+
+    <div class="auth-sep">or</div>
+
+    <button class="btn-oauth btn-github" id="btn-github">
+      <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
+        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+      </svg>
+      Continue with GitHub
+    </button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-item">
+      <span class="stat-num">10K+</span>
+      <span class="stat-label">Active Earners</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">PKR 5M+</span>
+      <span class="stat-label">Total Paid</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">500+</span>
+      <span class="stat-label">Daily Tasks</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">4.9★</span>
+      <span class="stat-label">Rating</span>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ══ FEATURES ══ -->
+<section class="section">
+  <div class="section-tag">// Why WatchEarn Pro</div>
+  <h2 class="section-title">Built for <span style="color:var(--primary)">Real Earners</span></h2>
+  <p class="section-sub">Everything you need to start earning from your phone today.</p>
+
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-icon feat-icon-g">💰</div>
+      <div class="feat-title">Instant PKR Rewards</div>
+      <p class="feat-desc">Earn Pakistani Rupees for every video task. No conversion, no waiting — direct to your account.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon feat-icon-k">🛡️</div>
+      <div class="feat-title">Zero Fraud Tolerance</div>
+      <p class="feat-desc">Advanced AI-powered fraud detection ensures only genuine earners get rewarded. Fair for everyone.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon feat-icon-g">⚡</div>
+      <div class="feat-title">Instant Credit</div>
+      <p class="feat-desc">Watch the video, get paid instantly. No approval process, no delays. Your earnings are yours.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon feat-icon-t">📱</div>
+      <div class="feat-title">Mobile First</div>
+      <p class="feat-desc">Designed from the ground up for smartphones. Earn on the go from anywhere in Pakistan.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon feat-icon-r">📊</div>
+      <div class="feat-title">Full Analytics</div>
+      <p class="feat-desc">Track every rupee. Detailed earnings history, task completion stats, and withdrawal tracking.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon feat-icon-b">🎯</div>
+      <div class="feat-title">Simple Tasks</div>
+      <p class="feat-desc">No skills required. Watch the video for the required time and your reward is credited automatically.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ HOW IT WORKS ══ -->
+<section class="section" style="padding-top:0">
+  <div class="how-wrap">
+    <div>
+      <div class="section-tag">// How It Works</div>
+      <h2 class="section-title">Start Earning in <span style="color:var(--gold)">4 Steps</span></h2>
+      <div class="steps-list">
+        <div class="step">
+          <div class="step-num-wrap"><div class="step-num">1</div></div>
+          <div>
+            <h4>Sign In Instantly</h4>
+            <p>Login with Google or GitHub. Account created automatically. No forms to fill.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num-wrap"><div class="step-num">2</div></div>
+          <div>
+            <h4>Pick a Task</h4>
+            <p>Browse available video tasks. See reward amount and watch time before you start.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num-wrap"><div class="step-num">3</div></div>
+          <div>
+            <h4>Watch & Earn</h4>
+            <p>Watch the video for the required duration. PKR credited to your wallet instantly.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num-wrap"><div class="step-num">4</div></div>
+          <div>
+            <h4>Withdraw Anytime</h4>
+            <p>Send earnings to EasyPaisa, JazzCash, or Bank. Minimum PKR 100 withdrawal.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Earning Preview -->
+    <div class="how-visual">
+      <div class="earning-preview">
+        <div class="ep-header">
+          <span class="ep-title">Your Wallet</span>
+          <span class="ep-live"><span class="ep-dot"></span>Live</span>
+        </div>
+        <div class="ep-amount">PKR 847.50</div>
+        <div class="ep-label">Available Balance</div>
+        <div class="ep-bar-wrap"><div class="ep-bar"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted)">
+          <span>Daily Goal: 68%</span><span>PKR 500 target</span>
+        </div>
+        <div class="ep-tasks">
+          <div class="ep-task">
+            <div class="ep-task-left">
+              <div class="ep-task-icon">▶️</div>
+              <div>
+                <div class="ep-task-name">Watch Ad Video</div>
+                <div class="ep-task-time">30 sec • Completed</div>
+              </div>
+            </div>
+            <div class="ep-task-earn">+PKR 2.50</div>
+          </div>
+          <div class="ep-task">
+            <div class="ep-task-left">
+              <div class="ep-task-icon">🎬</div>
+              <div>
+                <div class="ep-task-name">Product Review</div>
+                <div class="ep-task-time">60 sec • Completed</div>
+              </div>
+            </div>
+            <div class="ep-task-earn">+PKR 5.00</div>
+          </div>
+          <div class="ep-task" style="opacity:0.5">
+            <div class="ep-task-left">
+              <div class="ep-task-icon">📺</div>
+              <div>
+                <div class="ep-task-name">Brand Campaign</div>
+                <div class="ep-task-time">45 sec • Available</div>
+              </div>
+            </div>
+            <div class="ep-task-earn" style="color:var(--muted)">PKR 3.75</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ WITHDRAW METHODS ══ -->
+<div class="withdraw-sec">
+  <div class="withdraw-inner">
+    <div>
+      <div class="section-tag">// Withdrawal Methods</div>
+      <h2 class="section-title">Get Paid <span style="color:var(--teal)">Your Way</span></h2>
+      <p class="section-sub">We support Pakistan's most popular payment methods. Fast, secure, and reliable.</p>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
+        <span style="font-size:0.8rem;color:var(--muted)">Minimum withdrawal:</span>
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--gold);font-weight:600">PKR 100</span>
+      </div>
+    </div>
+    <div class="methods-grid">
+      <div class="method-card">
+        <div class="method-icon">💚</div>
+        <div class="method-name">EasyPaisa</div>
+        <div class="method-time">Instant Transfer</div>
+        <div class="method-badge">Most Popular</div>
+      </div>
+      <div class="method-card">
+        <div class="method-icon">🧡</div>
+        <div class="method-name">JazzCash</div>
+        <div class="method-time">Instant Transfer</div>
+        <div class="method-badge">Fast</div>
+      </div>
+      <div class="method-card">
+        <div class="method-icon">🏦</div>
+        <div class="method-name">Bank Transfer</div>
+        <div class="method-time">1-2 Business Days</div>
+        <div class="method-badge">All Banks</div>
+      </div>
+      <div class="method-card" style="opacity:0.5;cursor:not-allowed">
+        <div class="method-icon">💳</div>
+        <div class="method-name">Coming Soon</div>
+        <div class="method-time">More options</div>
+        <div class="method-badge" style="background:var(--gp);color:var(--primary)">Soon</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CTA ══ -->
+<section class="cta-section">
+  <h2 class="cta-title">Start Earning<br><span style="color:var(--primary)">Right Now</span></h2>
+  <p class="cta-sub">Join 10,000+ Pakistanis already earning with WatchEarn Pro. Free forever.</p>
+  <div class="cta-btns">
+    <button class="btn-cta-primary" id="btn-cta-google">
+      🚀 Get Started Free
+    </button>
+    <button class="btn-cta-outline" id="btn-cta-github">
+      Continue with GitHub
+    </button>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="footer-logo">WatchEarn Pro</div>
+  <div class="footer-text">© 2026 WatchEarn Pro · Made for Pakistan 🇵🇰</div>
+  <div class="footer-text">Secure · Transparent · Always Paying</div>
+</footer>
+
+</div><!-- end .page -->
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+// ══ CONFIG — APNI KEYS YAHAN DAALO ══
+const SUPABASE_URL      = 'https://srnygmsnrofumbvvqajg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNybnlnbXNucm9mdW1idnZxYWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NDkzNTIsImV4cCI6MjA5MzIyNTM1Mn0.UfFyLXs-twDZOMHEtYoOzbLqEDFXiIZrb10Xg68K0X8';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── Loader ──
+window.addEventListener('load', async () => {
+  const loader = document.getElementById('loader');
+  // Check session
+  const { data:{ session } } = await supabase.auth.getSession();
+  if (session) { window.location.href = '/dashboard.html'; return; }
+  setTimeout(() => { loader.classList.add('hide'); setTimeout(()=>loader.remove(),500); }, 1200);
+});
+
+// ── Cursor ──
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let rx=0,ry=0,cx=0,cy=0;
+document.addEventListener('mousemove', e => { cx=e.clientX; cy=e.clientY; cur.style.left=cx+'px'; cur.style.top=cy+'px'; });
+const animRing = () => { rx+=(cx-rx)*0.12; ry+=(cy-ry)*0.12; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(animRing); };
+animRing();
+document.querySelectorAll('button,a').forEach(el => {
+  el.addEventListener('mouseenter', () => { cur.style.width='20px'; cur.style.height='20px'; ring.style.width='52px'; ring.style.height='52px'; ring.style.opacity='0.6'; });
+  el.addEventListener('mouseleave', () => { cur.style.width='12px'; cur.style.height='12px'; ring.style.width='36px'; ring.style.height='36px'; ring.style.opacity='1'; });
+});
+
+// ── Auth ──
+const doGoogleLogin = async () => {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: `${window.location.origin}/dashboard.html` }
+  });
+  if (error) alert('Login failed: ' + error.message);
+};
+
+const doGithubLogin = async () => {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'github',
+    options: { redirectTo: `${window.location.origin}/dashboard.html` }
+  });
+  if (error) alert('Login failed: ' + error.message);
+};
+
+document.getElementById('btn-google').addEventListener('click', doGoogleLogin);
+document.getElementById('btn-github').addEventListener('click', doGithubLogin);
+document.getElementById('btn-cta-google').addEventListener('click', doGoogleLogin);
+document.getElementById('btn-cta-github').addEventListener('click', doGithubLogin);
+
+// ── Scroll reveal ──
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.animation = 'fadeUp 0.6s ease both';
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.feat-card,.step,.method-card').forEach(el => {
+  el.style.opacity = '0';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>
