@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Dashboard — WatchEarn Pro</title>
+<style>
+body{background:#07070d;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+.msg{text-align:center}
+h1{font-size:2rem;margin-bottom:12px}
+p{color:#7070a0}
+</style>
+</head>
+<body>
+<div class="msg">
+<h1>🎉 Login Successful!</h1>
+<p>Dashboard coming soon...</p>
+</div>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+const supabase = createClient('https://your-project.supabase.co','your-anon-key');
+const { data:{ session } } = await supabase.auth.getSession();
+if(!session){ window.location.href='/watchearn-pro/index.html'; }
+else{ document.querySelector('p').textContent = 'Welcome ' + (session.user.email || session.user.user_metadata?.preferred_username); }
+</script>
+</body>
+</html>
