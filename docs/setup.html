@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Setup Profile — WatchEarn Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#07070d;color:#ddddf0;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.mesh{position:fixed;inset:0;background:radial-gradient(ellipse 60% 50% at 80% 10%,rgba(124,110,255,0.1) 0%,transparent 70%),radial-gradient(ellipse 40% 40% at 10% 80%,rgba(255,95,132,0.07) 0%,transparent 70%);pointer-events:none;z-index:0}
+.card{position:relative;z-index:1;background:#11111e;border:1px solid #1c1c2e;border-radius:24px;padding:48px 40px;width:100%;max-width:440px;text-align:center}
+.logo{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;background:linear-gradient(135deg,#7c6eff,#ff5f84);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:32px;display:block}
+.avatar{width:72px;height:72px;border-radius:50%;border:3px solid #7c6eff;margin:0 auto 20px;display:block;object-fit:cover;background:#1c1c2e}
+.avatar-placeholder{width:72px;height:72px;border-radius:50%;border:3px solid #7c6eff;margin:0 auto 20px;background:#1c1c2e;display:flex;align-items:center;justify-content:center;font-size:2rem}
+h2{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:8px;letter-spacing:-0.02em}
+.sub{color:#7070a0;font-size:0.9rem;margin-bottom:32px;line-height:1.6}
+.form-group{text-align:left;margin-bottom:20px}
+label{display:block;font-size:0.78rem;font-weight:600;color:#7070a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.input-wrap{position:relative}
+.prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#7070a0;font-size:1rem}
+input{width:100%;padding:14px 14px 14px 32px;background:#0d0d17;border:1px solid #1c1c2e;border-radius:12px;color:#ddddf0;font-family:'DM Sans',sans-serif;font-size:1rem;outline:none;transition:all 0.2s}
+input:focus{border-color:#7c6eff;box-shadow:0 0 0 3px rgba(124,110,255,0.15)}
+input.error{border-color:#ff4560;box-shadow:0 0 0 3px rgba(255,69,96,0.15)}
+.hint{font-size:0.75rem;color:#7070a0;margin-top:6px}
+.error-msg{font-size:0.75rem;color:#ff4560;margin-top:6px;display:none}
+.btn{width:100%;padding:16px;background:linear-gradient(135deg,#7c6eff,#6055e0);color:white;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.25s;margin-top:8px;position:relative;overflow:hidden}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,110,255,0.3)}
+.btn:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+.btn-loading::after{content:'';position:absolute;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;right:16px;top:50%;transform:translateY(-50%)}
+.rules{background:#0d0d17;border:1px solid #1c1c2e;border-radius:10px;padding:14px;text-align:left;margin-bottom:20px}
+.rules p{font-size:0.78rem;color:#7070a0;line-height:1.8}
+.rules span{color:#7c6eff}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader{position:fixed;inset:0;background:#07070d;display:flex;align-items:center;justify-content:center;z-index:9999}
+.spinner{width:36px;height:36px;border:3px solid #1c1c2e;border-top-color:#7c6eff;border-radius:50%;animation:spin 0.8s linear infinite}
+</style>
+</head>
+<body>
+<div class="mesh"></div>
+<div class="loader" id="loader"><div class="spinner"></div></div>
+
+<div class="card" id="card" style="display:none">
+  <span class="logo">WatchEarn Pro</span>
+  <div class="avatar-placeholder" id="avatar-wrap">👤</div>
+  <h2>Complete Your Profile</h2>
+  <p class="sub">Choose a unique username to get started.<br>You cannot change this later.</p>
+
+  <div class="form-group">
+    <label>Username</label>
+    <div class="input-wrap">
+      <span class="prefix">@</span>
+      <input type="text" id="username" placeholder="coolearner123" maxlength="30" autocomplete="off" spellcheck="false">
+    </div>
+    <p class="hint">3-30 characters. Letters, numbers, underscore only.</p>
+    <p class="error-msg" id="username-error">Username already taken.</p>
+  </div>
+
+  <div class="rules">
+    <p>
+      <span>✓</span> Min 3 characters<br>
+      <span>✓</span> Letters, numbers, _ only<br>
+      <span>✓</span> No spaces allowed<br>
+      <span>✓</span> Cannot be changed later
+    </p>
+  </div>
+
+  <button class="btn" id="btn-submit">Create My Account 🚀</button>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+const SUPABASE_URL      = 'https://srnygmsnrofumbvvqajg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNybnlnbXNucm9mdW1idnZxYWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NDkzNTIsImV4cCI6MjA5MzIyNTM1Mn0.UfFyLXs-twDZOMHEtYoOzbLqEDFXiIZrb10Xg68K0X8';
+const API_URL           = 'https://watchearn-pro-production.up.railway.app/api';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { detectSessionInUrl: true, persistSession: true, autoRefreshToken: true }
+});
+
+const loader   = document.getElementById('loader');
+const card     = document.getElementById('card');
+const input    = document.getElementById('username');
+const btn      = document.getElementById('btn-submit');
+const errMsg   = document.getElementById('username-error');
+const avatarEl = document.getElementById('avatar-wrap');
+
+let currentUser = null;
+let currentToken = null;
+
+// ── Init ──
+const init = async () => {
+  await new Promise(r => setTimeout(r, 800));
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) {
+    window.location.href = '/watchearn-pro/index.html';
+    return;
+  }
+
+  currentUser  = session.user;
+  currentToken = session.access_token;
+
+  // Check if already has username
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('username')
+    .eq('id', currentUser.id)
+    .single();
+
+  if (profile?.username) {
+    window.location.href = '/watchearn-pro/dashboard.html';
+    return;
+  }
+
+  // Show avatar if available
+  const avatar = currentUser.user_metadata?.avatar_url;
+  if (avatar) {
+    avatarEl.innerHTML = '';
+    avatarEl.className = 'avatar';
+    const img = document.createElement('img');
+    img.src = avatar;
+    img.className = 'avatar';
+    img.style.margin = '0 auto 20px';
+    avatarEl.parentNode.replaceChild(img, avatarEl);
+  }
+
+  loader.style.display = 'none';
+  card.style.display   = 'block';
+};
+
+// ── Validate username ──
+const isValidUsername = (u) => /^[a-zA-Z0-9_]{3,30}$/.test(u);
+
+// ── Submit ──
+btn.addEventListener('click', async () => {
+  const username = input.value.trim().toLowerCase();
+  errMsg.style.display = 'none';
+  input.classList.remove('error');
+
+  if (!isValidUsername(username)) {
+    input.classList.add('error');
+    errMsg.textContent = 'Invalid username. Use 3-30 letters, numbers, or _';
+    errMsg.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.classList.add('btn-loading');
+  btn.textContent = 'Checking...';
+
+  try {
+    // Check uniqueness
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('username', username)
+      .single();
+
+    if (existing) {
+      input.classList.add('error');
+      errMsg.textContent = 'Username already taken. Try another.';
+      errMsg.style.display = 'block';
+      btn.disabled = false;
+      btn.classList.remove('btn-loading');
+      btn.textContent = 'Create My Account 🚀';
+      return;
+    }
+
+    // Save username via API
+    const res = await fetch(`${API_URL}/auth/profile`, {
+      method:  'PATCH',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${currentToken}`,
+      },
+      body: JSON.stringify({
+        username,
+        avatar_url: currentUser.user_metadata?.avatar_url || null,
+        email:      currentUser.email,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      btn.textContent = 'Done! Redirecting...';
+      setTimeout(() => {
+        window.location.href = '/watchearn-pro/dashboard.html';
+      }, 800);
+    } else {
+      throw new Error(data.message || 'Failed to save');
+    }
+
+  } catch (err) {
+    errMsg.textContent = err.message || 'Something went wrong. Try again.';
+    errMsg.style.display = 'block';
+    btn.disabled = false;
+    btn.classList.remove('btn-loading');
+    btn.textContent = 'Create My Account 🚀';
+  }
+});
+
+// ── Live validation ──
+input.addEventListener('input', () => {
+  const val = input.value.trim();
+  errMsg.style.display = 'none';
+  input.classList.remove('error');
+  if (val.length > 0 && !isValidUsername(val)) {
+    input.classList.add('error');
+  }
+});
+
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter') btn.click();
+});
+
+init();
+</script>
+</body>
+</html>

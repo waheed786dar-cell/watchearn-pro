@@ -899,7 +899,7 @@ document.querySelectorAll('button,a').forEach(el => {
 const doGoogleLogin = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: `https://waheed786dar-cell.github.io/watchearn-pro/dashboard.html` }
+    options: { redirectTo: `https://waheed786dar-cell.github.io/watchearn-pro/setup.html` }
   });
   if (error) alert('Login failed: ' + error.message);
 };
@@ -907,7 +907,7 @@ const doGoogleLogin = async () => {
 const doGithubLogin = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
-    options: { redirectTo: `https://waheed786dar-cell.github.io/watchearn-pro/dashboard.html` }
+    options: { redirectTo: `https://waheed786dar-cell.github.io/watchearn-pro/setup.html` }
   });
   if (error) alert('Login failed: ' + error.message);
 };
